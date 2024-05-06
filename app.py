@@ -1,15 +1,47 @@
-from flask import Flask, render_template, Response, jsonify, request
+# from flask import Flask, render_template, Response, jsonify, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
 from flask_socketio import SocketIO
+from ultralytics import YOLO
 import cv2
 import numpy as np
 import time
 import threading
 import winsound
 from flask_cors import CORS
+import torch
+
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app)
+
+# login method
+USERNAME = "admin"
+PASSWORD = "password"
+
+
+@app.route("/")
+def home():
+    return render_template("login.html")
+
+
+# @app.route("/login", methods=["POST"])
+# def login():
+#     username = request.form["username"]
+#     password = request.form["password"]
+#     if username == USERNAME and password == PASSWORD:
+#         return redirect(url_for("index"))
+#     else:
+#         return render_template("login.html", message="Invalid credentials")
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    if username == USERNAME and password == PASSWORD:
+        return redirect(url_for("index"))
+    else:
+        return redirect(url_for("home"))
+
 
 # Load YOLO
 net = cv2.dnn.readNet("yolov7-tiny.weights", "yolov7-tiny.cfg")
@@ -20,6 +52,12 @@ with open("coco.names", "r") as f:
 
 # Path to your video file
 video_path = "need.mp4"
+
+
+# Assuming you have YOLOv8 installed (e.g., using 'pip install yolov8')
+
+
+# Load the YOLOv8 model (replace 'yolov8m.pt' with your actual model path)
 
 
 # Initialize video capture
@@ -103,9 +141,14 @@ update_thread.daemon = True
 update_thread.start()
 
 
-@app.route("/")
+@app.route("/index")
 def index():
     return render_template("index.html")
+
+
+# @app.route("/")
+# def index():
+#     return render_template("index.html")
 
 
 @app.route("/video_feed")
